@@ -1,13 +1,14 @@
-from aiogram import types
-from aiogram.dispatcher.filters.builtin import CommandHelp
+from aiogram import Router
+from aiogram.filters import Command
+from aiogram.types import Message
 
-from loader import dp
+router = Router(name="help")
 
 
-@dp.message_handler(CommandHelp())
-async def bot_help(message: types.Message):
+@router.message(Command("help"))
+async def bot_help(message: Message):
     text = ("Buyruqlar: ",
             "/start - Botni ishga tushirish",
             "/help - Yordam")
-    
+
     await message.answer("\n".join(text))

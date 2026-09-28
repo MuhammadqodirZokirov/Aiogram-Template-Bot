@@ -1,58 +1,41 @@
 import logging
-from aiogram.utils.exceptions import (Unauthorized, InvalidQueryID, TelegramAPIError,
-                                      CantDemoteChatCreator, MessageNotModified, MessageToDeleteNotFound,
-                                      MessageTextIsEmpty, RetryAfter,
-                                      CantParseEntities, MessageCantBeDeleted)
+
+from aiogram import Router
+from aiogram.exceptions import (
+    TelegramAPIError,
+    TelegramBadRequest,
+    TelegramForbiddenError,
+    TelegramRetryAfter,
+    TelegramUnauthorizedError,
+)
+from aiogram.types import ErrorEvent
+
+router = Router(name="errors")
 
 
-from loader import dp
-
-
-@dp.errors_handler()
-async def errors_handler(update, exception):
+@router.error()
+async def errors_handler(event: ErrorEvent):
     """
-    Exceptions handler. Catches all exceptions within task factory tasks.
-    :param dispatcher:
-    :param update:
-    :param exception:
+    Exceptions handler. Barcha routerlardagi xatolarni ushlaydi.
+    :param event: ErrorEvent (event.update, event.exception)
     :return: stdout logging
     """
+    exception = event.exception
+    update = event.update
 
-    if isinstance(exception, CantDemoteChatCreator):
-        logging.exception("Can't demote chat creator")
-        return True
+    if isinstance(exception, TelegramUnauthorizedError):
+        logging.error(f'Unauthorized (token noto\'g\'ri): {exception}')
+    elif isinstance(exception, TelegramForbiddenError):
+        # Foydalanuvchi botni bloklagan va h.k.
+        logging.warning(f'Forbidden: {exception}')
+    elif isinstance(exception, TelegramRetryAfter):
+        logging.warning(f'RetryAfter {exception.retry_after}s: {exception} (update_id={update.update_id})')
+    elif isinstance(exception, TelegramBadRequest):
+        # MessageNotModified, MessageToDeleteNotFound, CantParseEntities va h.k.
+        logging.warning(f'BadRequest: {exception} (update_id={update.update_id})')
+    elif isinstance(exception, TelegramAPIError):
+        logging.error(f'TelegramAPIError: {exception} (update_id={update.update_id})')
+    else:
+        logging.error(f"update_id={update.update_id}: {exception}", exc_info=exception)
 
-    if isinstance(exception, MessageNotModified):
-        logging.exception('Message is not modified')
-        return True
-    if isinstance(exception, MessageCantBeDeleted):
-        logging.exception('Message cant be deleted')
-        return True
-
-    if isinstance(exception, MessageToDeleteNotFound):
-        logging.exception('Message to delete not found')
-        return True
-
-    if isinstance(exception, MessageTextIsEmpty):
-        logging.exception('MessageTextIsEmpty')
-        return True
-
-    if isinstance(exception, Unauthorized):
-        logging.exception(f'Unauthorized: {exception}')
-        return True
-
-    if isinstance(exception, InvalidQueryID):
-        logging.exception(f'InvalidQueryID: {exception} \nUpdate: {update}')
-        return True
-
-    if isinstance(exception, TelegramAPIError):
-        logging.exception(f'TelegramAPIError: {exception} \nUpdate: {update}')
-        return True
-    if isinstance(exception, RetryAfter):
-        logging.exception(f'RetryAfter: {exception} \nUpdate: {update}')
-        return True
-    if isinstance(exception, CantParseEntities):
-        logging.exception(f'CantParseEntities: {exception} \nUpdate: {update}')
-        return True
-    
-    logging.exception(f'Update: {update} \n{exception}')
+    return True

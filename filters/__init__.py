@@ -1,9 +1,11 @@
 from aiogram import Dispatcher
 
-from loader import dp
 # from .is_admin import AdminFilter
 
 
-if __name__ == "filters":
-    #dp.filters_factory.bind(is_admin)
+def setup_filters(dp: Dispatcher) -> None:
+    # aiogram 3 da filtrlar bind qilinmaydi, to'g'ridan-to'g'ri handlerga beriladi:
+    #   @router.message(AdminFilter())
+    # Bu yerda global filtrlar qo'shish mumkin:
+    #   dp.message.filter(F.chat.type == "private")
     pass

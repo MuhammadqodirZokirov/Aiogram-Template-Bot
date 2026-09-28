@@ -1,9 +1,10 @@
-from aiogram import types
-from aiogram.dispatcher.filters.builtin import CommandStart
+from aiogram import Router, html
+from aiogram.filters import CommandStart
+from aiogram.types import Message
 
-from loader import dp
+router = Router(name="start")
 
 
-@dp.message_handler(CommandStart())
-async def bot_start(message: types.Message):
-    await message.answer(f"Salom, {message.from_user.full_name}!")
+@router.message(CommandStart())
+async def bot_start(message: Message):
+    await message.answer(f"Salom, {html.quote(message.from_user.full_name)}!")

@@ -1,16 +1,19 @@
-def rate_limit(limit: int, key=None):
+from aiogram import flags
+
+
+def rate_limit(limit: float, key: str | None = None):
     """
-    Decorator for configuring rate limit and key in different functions.
+    Handler uchun rate limit va key ni belgilovchi dekorator.
+    Router dekoratoridan PASTDA yozilishi kerak:
 
-    :param limit:
-    :param key:
-    :return:
+        @router.message(Command("test"))
+        @rate_limit(5, "test")
+        async def handler(message: Message): ...
+
+    :param limit: sekundlarda limit
+    :param key: throttling kaliti (default: handler nomi)
     """
-
-    def decorator(func):
-        setattr(func, 'throttling_rate_limit', limit)
-        if key:
-            setattr(func, 'throttling_key', key)
-        return func
-
-    return decorator
+    options = {"rate": limit}
+    if key:
+        options["key"] = key
+    return flags.throttling(options)
